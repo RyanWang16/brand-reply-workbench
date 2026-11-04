@@ -1,0 +1,17 @@
+{
+  "disclosure_note": "如属于商业合作，请按实际合作关系和平台规则完成披露。",
+  "products": {
+    "philips_shaver": {
+      "name": "飞利浦剃须刀",
+      "approved_points": []
+    },
+    "philips_hair_dryer": {
+      "name": "飞利浦吹风机",
+      "approved_points": []
+    },
+    "philips_toothbrush": {
+      "name": "飞利浦电动牙刷",
+      "approved_points": []
+    }
+  }
+}

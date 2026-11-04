@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f7f8fa">
+  <title>AI 评论生成器</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#generator" aria-label="品牌回复生成器首页"><span class="brand-mark">B</span><span>品牌回复生成器</span></a>
+    <nav class="nav-tabs" aria-label="主导航">
+      <button class="nav-tab active" data-view="generator">生成内容</button>
+      <button class="nav-tab" data-view="products">产品卖点</button>
+    </nav>
+    <div class="connection" id="modelBadge"><i></i><span>正在检查 AI 服务</span></div>
+  </header>
+
+  <main class="page">
+    <section class="view active" id="view-generator">
+      <div class="intro">
+        <p class="eyebrow">AI CONTENT ASSISTANT</p>
+        <h1>生成评论内容</h1>
+        <p>填写帖子文字，选择产品，生成一条贴合语境的品牌回复。</p>
+      </div>
+
+      <div class="generator-grid">
+        <section class="card input-card">
+          <div class="card-title"><div><h2>帖子信息</h2><p>链接仅记录来源，需手动粘贴帖子文字</p></div><span class="step-chip">01</span></div>
+          <form id="generatorForm">
+            <label for="linkInput">小红书帖子链接</label>
+            <input id="linkInput" name="url" type="url" placeholder="https://www.xiaohongshu.com/..." required>
+            <div class="field-row">
+              <div class="field-grow"><label for="titleInput">帖子标题</label><input id="titleInput" name="post_title" maxlength="200" placeholder="填写帖子标题" required></div>
+              <div class="product-field"><label for="productSelect">对应产品</label><select id="productSelect" name="product_id" required></select></div>
+            </div>
+            <label for="textInput">帖子文字</label>
+            <textarea id="textInput" name="post_text" maxlength="5000" placeholder="粘贴你有权处理的帖子正文或摘要" required></textarea>
+            <div class="input-foot"><span>最多 5000 字</span><button type="button" class="text-button" id="clearBtn">清空内容</button></div>
+            <button class="button button-primary generate-button" id="generateBtn" type="submit"><span>✦</span> 生成回复</button>
+          </form>
+        </section>
+
+        <section class="card output-card">
+          <div class="card-title"><div><h2>生成结果</h2><p>可复制使用，也可以继续编辑</p></div><span class="step-chip">02</span></div>
+          <div id="emptyOutput" class="empty-output"><div class="empty-icon">✦</div><strong>生成的内容会显示在这里</strong><span>填写左侧内容并点击“生成回复”</span></div>
+          <div id="resultPanel" hidden>
+            <label class="result-label" for="resultText">生成内容</label>
+            <textarea id="resultText" class="result-text" placeholder="生成的回复文案"></textarea>
+            <button class="button button-copy" id="copyBtn" type="button">复制文案</button>
+            <button class="button button-add" id="addToHandoffBtn" type="button">加入交付清单</button>
+          </div>
+          <div class="handoff-bar"><span id="handoffCount">交付清单：0 条</span><button class="button button-export" id="exportBtn" type="button" disabled>下载 Excel</button></div>
+          <div class="output-note"><span>i</span><p>生成的内容以品牌身份表达。请在“产品卖点”中填写准确的产品信息。</p></div>
+        </section>
+      </div>
+      <p class="privacy-note">帖子链接不会被自动读取。点击生成后，帖子标题和文字会发送到已配置的 AI 服务；链接本身不会发送。</p>
+    </section>
+
+    <section class="view" id="view-products">
+      <div class="intro"><p class="eyebrow">PRODUCT INFORMATION</p><h1>产品卖点</h1><p>只填写已确认的产品信息，AI 会从中选择相关内容，不会自行补充卖点。</p></div>
+      <div class="products-layout">
+        <section class="card product-list-card"><div class="card-title"><div><h2>产品列表</h2><p>选择需要维护的产品</p></div></div><div id="productList" class="product-list"></div></section>
+        <section class="card product-editor" id="productEditor"><div class="editor-empty">选择产品后，在这里维护已核实卖点。</div></section>
+      </div>
+      <button class="text-button back-button" data-view="generator">← 返回生成内容</button>
+    </section>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="/app.js" defer></script>
+</body>
+</html>
