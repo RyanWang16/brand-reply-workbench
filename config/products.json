@@ -12,6 +12,10 @@
     "philips_toothbrush": {
       "name": "飞利浦电动牙刷",
       "approved_points": []
+    },
+    "demo_lumina_dryer": {
+      "name": "澄风 Lumina 轻羽吹风机（虚构演示产品）",
+      "approved_points": []
     }
   }
 }

@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "documents": [
+    {"id":"demo-001","product_id":"demo_lumina_dryer","title":"机身与重量","content":"澄风 Lumina 轻羽吹风机采用轻量化机身设计，整机重量约 390 克（不含电源线）。","source":"docs/demo_product_manual.md · 产品概览","tags":["轻量","重量","旅行","收纳","手持"]},
+    {"id":"demo-002","product_id":"demo_lumina_dryer","title":"风温与档位","content":"产品提供两档风速和三档温度设置，可通过机身按键切换。","source":"docs/demo_product_manual.md · 使用方式","tags":["档位","风速","温度","按键","调节"]},
+    {"id":"demo-003","product_id":"demo_lumina_dryer","title":"包装内物品","content":"标准包装包含吹风机主机、集风嘴、使用说明书和收纳袋。","source":"docs/demo_product_manual.md · 包装清单","tags":["配件","集风嘴","收纳袋","包装"]},
+    {"id":"demo-004","product_id":"demo_lumina_dryer","title":"清洁与维护","content":"清洁前请先断开电源。进风口滤网可拆卸清理，清洁后需完全晾干再装回。","source":"docs/demo_product_manual.md · 清洁维护","tags":["清洁","滤网","进风口","维护"]},
+    {"id":"demo-005","product_id":"demo_lumina_dryer","title":"使用注意事项","content":"请勿在浴缸、淋浴或盛水容器附近使用本产品；使用后应拔下电源插头。","source":"docs/demo_product_manual.md · 安全须知","tags":["安全","浴室","电源","插头"]}
+  ]
+}

@@ -19,6 +19,7 @@ from urllib.parse import unquote, urlparse
 ROOT = Path(__file__).resolve().parent
 WEB = ROOT / "web"
 PRODUCTS_FILE = ROOT / "config" / "products.json"
+KNOWLEDGE_FILE = ROOT / "config" / "product_knowledge.json"
 MAX_POST_TEXT = 5_000
 
 
@@ -41,6 +42,7 @@ def load_local_env() -> None:
 load_local_env()
 sys.path.insert(0, str(ROOT / "scripts"))
 from generate_drafts import request_model  # noqa: E402
+from retrieval import retrieve  # noqa: E402
 
 
 def read_products() -> dict:
@@ -86,8 +88,10 @@ class Handler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         if parsed.path == "/api/state":
             config = read_products()
+            knowledge = json.loads(KNOWLEDGE_FILE.read_text(encoding="utf-8"))
             return send_json(self, {
                 "products": config.get("products", {}),
+                "knowledge_counts": {product_id: sum(1 for item in knowledge.get("documents", []) if item.get("product_id") == product_id) for product_id in config.get("products", {})},
                 "disclosure_note": config.get("disclosure_note", ""),
                 "ai_configured": all(os.getenv(key) for key in ("AI_API_BASE", "AI_API_KEY", "AI_MODEL")),
             })
@@ -132,8 +136,10 @@ class Handler(BaseHTTPRequestHandler):
         product = config.get("products", {}).get(product_id)
         if not product:
             raise ValueError("请先选择一个产品")
-        if not product.get("approved_points"):
-            raise ValueError("这个产品还没有填写已审核的卖点，请先到‘产品卖点’页面添加")
+        query = f"{title}\n{post_text}"
+        evidence = retrieve(product_id, query, KNOWLEDGE_FILE)
+        if not evidence:
+            raise ValueError("知识库里暂时没有与这条帖子相关的产品资料，请核对帖子内容或补充产品资料")
         api_base, api_key, model = (os.getenv(key, "") for key in ("AI_API_BASE", "AI_API_KEY", "AI_MODEL"))
         if not all((api_base, api_key, model)):
             raise ValueError("AI 服务还没有配置，请联系管理员完成一次设置")
@@ -142,32 +148,17 @@ class Handler(BaseHTTPRequestHandler):
         result = request_model(
             {"post_title": title, "post_text": post_text},
             product,
+            evidence,
             api_base,
             api_key,
             model,
         )
         result["disclosure_note"] = config.get("disclosure_note", "") if result["decision"] == "draft" else ""
+        result["sources"] = [{"title": item["title"], "source": item["source"], "content": item["content"]} for item in evidence] if result["decision"] == "draft" else []
         return send_json(self, result)
 
     def update_products(self, body: dict) -> None:
-        config = read_products()
-        product_id = str(body.get("product_id", ""))
-        product = config.get("products", {}).get(product_id)
-        if not product:
-            raise ValueError("找不到这个产品")
-        raw_points = body.get("approved_points", [])
-        if not isinstance(raw_points, list) or len(raw_points) > 20:
-            raise ValueError("卖点最多填写 20 条")
-        points = []
-        for raw in raw_points:
-            point = str(raw).strip()
-            if point and point not in points:
-                if len(point) > 200:
-                    raise ValueError("每条卖点最多 200 个字符")
-                points.append(point)
-        product["approved_points"] = points
-        write_products(config)
-        return send_json(self, {"product_id": product_id, "approved_points": points})
+        return send_json(self, {"error": "产品资料请在 config/product_knowledge.json 中维护"}, 400)
 
     def export_handoff(self, body: dict) -> None:
         records = body.get("records")

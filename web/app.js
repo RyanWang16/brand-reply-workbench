@@ -1,4 +1,4 @@
-const state = { products: {}, selectedProductId: null, aiConfigured: false };
+const state = { products: {}, knowledge_counts: {}, selectedProductId: null, aiConfigured: false };
 const HANDOFF_KEY = "brand-reply-handoff-v1";
 let handoffItems = loadHandoff();
 const $ = (selector, root = document) => root.querySelector(selector);
@@ -36,6 +36,7 @@ async function loadState() {
   try {
     const result = await api("/api/state");
     state.products = result.products || {};
+    state.knowledge_counts = result.knowledge_counts || {};
     state.aiConfigured = Boolean(result.ai_configured);
     const badge = $("#modelBadge");
     badge.innerHTML = `<i class="${state.aiConfigured ? "ready" : "off"}"></i><span>${state.aiConfigured ? "AI 服务已配置" : "AI 服务未配置"}</span>`;
@@ -62,14 +63,13 @@ function renderProductSettings() {
     return;
   }
   if (!state.selectedProductId || !state.products[state.selectedProductId]) state.selectedProductId = entries[0][0];
-  $("#productList").innerHTML = entries.map(([id, product]) => `<button class="product-item ${id === state.selectedProductId ? "selected" : ""}" data-id="${escapeHtml(id)}"><span class="product-symbol">✦</span><span><strong>${escapeHtml(product.name || id)}</strong><small>${(product.approved_points || []).length} 条已核实卖点</small></span></button>`).join("");
+  $("#productList").innerHTML = entries.map(([id, product]) => `<button class="product-item ${id === state.selectedProductId ? "selected" : ""}" data-id="${escapeHtml(id)}"><span class="product-symbol">✦</span><span><strong>${escapeHtml(product.name || id)}</strong><small>${state.knowledge_counts[id] || 0} 条知识库资料</small></span></button>`).join("");
   $$(".product-item").forEach(button => button.addEventListener("click", () => {
     state.selectedProductId = button.dataset.id;
     renderProductSettings();
   }));
   const product = state.products[state.selectedProductId];
-  $("#productEditor").innerHTML = `<p class="eyebrow">PRODUCT FACTS</p><h2>${escapeHtml(product.name || state.selectedProductId)}</h2><p class="editor-copy">一行填写一条已经确认、适用于对应型号的信息。</p><label for="claimsInput">已核实卖点</label><textarea id="claimsInput" class="claims-input" maxlength="4200" placeholder="填写已审核的产品功能、设计特点等；不要填写未经证实的效果或体验。">${escapeHtml((product.approved_points || []).join("\n"))}</textarea><p class="editor-hint">卖点为空时无法生成。AI 只会匹配这里的内容。</p><button class="button button-primary" id="saveClaims">保存卖点</button>`;
-  $("#saveClaims").addEventListener("click", saveClaims);
+  $("#productEditor").innerHTML = `<p class="eyebrow">PRODUCT KNOWLEDGE</p><h2>${escapeHtml(product.name || state.selectedProductId)}</h2><p class="editor-copy">演示时，系统会根据帖子内容，从该产品资料中检索相关信息，并在生成结果下列出引用来源。</p><p class="editor-hint">资料维护位置：config/product_knowledge.json。虚构产品的完整演示手册见 docs/demo_product_manual.md。</p>`;
 }
 
 function switchView(view) {
@@ -87,6 +87,7 @@ function showResult(result) {
   $("#emptyOutput").hidden = true;
   $("#resultPanel").hidden = false;
   $("#resultText").value = result.draft || "";
+  $("#sourceList").innerHTML = (result.sources || []).length ? `<strong>本次参考资料</strong>${result.sources.map(item => `<div class="source-item"><b>${escapeHtml(item.title)}</b><p>${escapeHtml(item.content)}</p><small>${escapeHtml(item.source)}</small></div>`).join("")}` : "";
   return true;
 }
 
@@ -168,16 +169,6 @@ $("#exportBtn").addEventListener("click", async () => {
   } catch (error) { toast(error.message, true); }
   finally { button.disabled = handoffItems.length === 0; button.textContent = "下载 Excel"; }
 });
-
-async function saveClaims() {
-  const approved_points = $("#claimsInput").value.split(/\r?\n/).map(value => value.trim()).filter(Boolean);
-  try {
-    await api("/api/products", { method: "POST", body: JSON.stringify({ product_id: state.selectedProductId, approved_points }) });
-    state.products[state.selectedProductId].approved_points = approved_points;
-    renderProductSettings(); renderProductOptions();
-    toast("产品卖点已保存");
-  } catch (error) { toast(error.message, true); }
-}
 
 $$('[data-view]').forEach(button => button.addEventListener("click", () => switchView(button.dataset.view)));
 updateHandoffMeta();
